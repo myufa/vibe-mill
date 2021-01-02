@@ -1,5 +1,5 @@
 import express, { Request, Response, NextFunction} from "express";
-import { authApp } from './auth'
+import { authApp } from './auth/api'
 import { spotifyService } from './spotify'
 import cookieSession from "cookie-session";
 import passport from "passport";

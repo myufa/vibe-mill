@@ -57,7 +57,7 @@ export default class HomePage extends Component<{}, state> {
         user: responseJson.user
       });
       this.setState({
-        photoUrl: this.state.user.images ? this.state.user.images[0].url : null
+        photoUrl: this.state.user.profilePic ? this.state.user.profilePic : null
       });
       console.log(this.state)
     })
@@ -85,8 +85,8 @@ export default class HomePage extends Component<{}, state> {
             <h1>Welcome!</h1>
           ) : (
             <div>
-              <h1>You have login successfully!</h1>
-              <h2>Welcome {this.state.user.display_name}!</h2>
+              <h1>You have logged in successfully!</h1>
+              <h2>Welcome {this.state.user.displayName}!</h2>
             </div>
           )}
         </div>

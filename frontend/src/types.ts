@@ -1,12 +1,13 @@
 export interface User {
-    display_name?: string
-    images?: Image[]
-    photos?: string[]
-    product?: string
-    type?: string
-    id?: string
-    href?: string
-    followers?: Followers
+    id?: string;
+    username?: string;
+    displayName?: string;
+    profileUrl?: string | null;
+    profilePic?: string;
+    country?: string;
+    followers?: number | null;
+    product?: string | null;
+    emails?: [{ value: string; type: null }];
 }
 
 export interface Image {
