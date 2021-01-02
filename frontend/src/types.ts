@@ -1,5 +1,5 @@
 export interface User {
-    displayName?: string
+    display_name?: string
     images?: Image[]
     photos?: string[]
     product?: string
