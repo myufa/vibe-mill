@@ -1,6 +1,7 @@
 export interface User {
-    display_name?: string
+    displayName?: string
     images?: Image[]
+    photos?: string[]
     product?: string
     type?: string
     id?: string

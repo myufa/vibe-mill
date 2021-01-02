@@ -3,11 +3,10 @@ import { authApp } from './auth'
 import { spotifyService } from './spotify'
 import cookieSession from "cookie-session";
 import passport from "passport";
-import session from "express-session";
 import cors from "cors";
 import cookieParser from "cookie-parser"; // parse cookie header
 import keys from './config/keys'
-import { passport_setup } from './config/passport-setup'
+import { passportSetup } from './config/passport-setup'
 
 export const startServer = () => {
     const app = express();
@@ -22,7 +21,7 @@ export const startServer = () => {
 
     app.use(cookieParser());
 
-    passport_setup()
+    passportSetup()
 
     // initalize passport
     app.use(passport.initialize());

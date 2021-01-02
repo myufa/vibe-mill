@@ -3,6 +3,7 @@ import PropTypes from "prop-types";
 import axios, { /*AxiosInstance,*/ AxiosResponse, /*AxiosRequestConfig*/ } from 'axios';
 import Header from "./Header";
 import { User } from './../types'
+import { Tester } from './Tester'
 
 interface successResponse {
   success?: boolean
@@ -12,9 +13,10 @@ interface successResponse {
 }
 
 interface state {
-  user: User,
-  error: string | null,
+  user: User
+  error: string | null
   authenticated: boolean
+  photoUrl?: string | null
 }
 
 export default class HomePage extends Component<{}, state> {
@@ -31,7 +33,8 @@ export default class HomePage extends Component<{}, state> {
   state: state = {
     user: {},
     error: null,
-    authenticated: false
+    authenticated: false,
+    photoUrl: null
   };
 
   componentDidMount() {
@@ -44,23 +47,29 @@ export default class HomePage extends Component<{}, state> {
         "Access-Control-Allow-Credentials": true
       }
     })
-      .then((response: AxiosResponse<successResponse>) => {
-        if (response.status === 200) return response.data;
-        throw new Error("failed to authenticate user");
-      })
-      .then(responseJson => {
-        this.setState({
-          authenticated: true,
-          user: responseJson.user
-        });
-      })
-      .catch(error => {
-        this.setState({
-          authenticated: false,
-          error: "Failed to authenticate user"
-        });
+    .then((response: AxiosResponse<successResponse>) => {
+      if (response.status === 200) return response.data;
+      throw new Error("failed to authenticate user");
+    })
+    .then(responseJson => {        
+      this.setState({
+        authenticated: true,
+        user: responseJson.user
       });
+      this.setState({
+        photoUrl: this.state.user.photos ? this.state.user.photos[0] : null
+      });
+      console.log(this.state)
+    })
+    .catch(error => {
+      this.setState({
+        authenticated: false,
+        error: "Failed to authenticate user"
+      });
+    });
   }
+
+
 
   render() {
     const { authenticated } = this.state;
@@ -69,21 +78,22 @@ export default class HomePage extends Component<{}, state> {
         <Header
           authenticated={authenticated}
           handleNotAuthenticated={this._handleNotAuthenticated}
+          photoUrl={this.state.photoUrl}
         />
         <div>
           {!authenticated ? (
             <h1>Welcome!</h1>
           ) : (
             <div>
-              <h1>You have login succcessfully!</h1>
-              <h2>Welcome {this.state.user.display_name}!</h2>
+              <h1>You have login successfully!</h1>
+              <h2>Welcome {this.state.user.displayName}!</h2>
             </div>
           )}
         </div>
+        <Tester />
       </div>
     );
   }
-
   _handleNotAuthenticated = () => {
     this.setState({ authenticated: false });
   };

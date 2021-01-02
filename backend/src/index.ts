@@ -1,2 +1,2 @@
 import { startServer } from './api'
-startServer()
+export const App = startServer()
