@@ -23,7 +23,7 @@ export class SpotifyClient {
             result = await axios({
                 url: this.baseUrl + path,
                 params,
-                method: method,
+                method,
                 headers: {
                         'Authorization': 'Bearer ' + authToken
                 }
@@ -69,7 +69,7 @@ export class SpotifyClient {
     }
 
     async getUser(authToken: string): Promise<User> {
-        let userResult = await this.callSpotify('me', 'get', authToken)
+        const userResult = await this.callSpotify('me', 'get', authToken)
         const userProto = userResult
         const user: User = {
             id: userProto.id,
@@ -110,7 +110,7 @@ export class SpotifyClient {
     }
 
     async getAlbums(albumIds: string[], authToken: string): Promise<any[]> {
-        const params = { 
+        const params = {
             market: 'from_token',
             ids: albumIds.reduce((ids, nextId) => ids + ',' + nextId)
         }

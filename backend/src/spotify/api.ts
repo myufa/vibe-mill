@@ -17,7 +17,6 @@ app.get('/topArtists', async (req, res) => {
 app.get('/someTopTracks', async (req, res) => {
     console.log('hit /someTopTracks')
     const result = await spotifyController.getSomeTopTracks(req.session.authToken)
-    //console.log(simplifyTracks(result.tracks))
     res.send(result)
 })
 
@@ -28,7 +27,6 @@ app.get('/test', async (req, res) => {
 
     res.send({ message: simplifyTracks(playlistTest) })
 })
-
 
 
 export { app as spotifyApp }

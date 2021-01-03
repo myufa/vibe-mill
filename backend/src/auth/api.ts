@@ -46,10 +46,10 @@ app.get("/spotify", (req, res) => {
     const state = generateRandomString(16)
     res.cookie(stateKey, state)
     const scope = [
-      'user-top-read', 
-      'user-read-recently-played', 
-      'playlist-modify-public', 
-      'playlist-read-private', 
+      'user-top-read',
+      'user-read-recently-played',
+      'playlist-modify-public',
+      'playlist-read-private',
       'playlist-modify-public',
       'playlist-modify-private'
     ]
@@ -58,7 +58,7 @@ app.get("/spotify", (req, res) => {
         response_type: 'code',
         client_id: KEYS.SPOTIFY_CLIENT_ID,
         scope: scope.reduce((total, nextStr) => total + ' ' + nextStr),
-        state: state,
+        state,
         show_dialog: true,
         redirect_uri: encodeURI(API_DOMAIN + '/auth/spotify/redirect')
       })
@@ -71,7 +71,7 @@ app.get("/spotify/redirect", async (req, res) => {
   console.log('hit /auth/spotify/redirect')
   const code = req.query.code
 
-  // Get authentication token and refresh token by 
+  // Get authentication token and refresh token by
   // posting sign-in code to spotify token endpoint
   const { authToken, refreshToken } = await spotifyClient.getAuth(code)
   req.session.authToken = authToken

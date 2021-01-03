@@ -3,7 +3,6 @@ import assert from 'assert'
 import open from 'open'
 import axios, { AxiosResponse } from 'axios'
 import { app } from './server'
-import { TEST_USER, TEST_PASSWORD } from '../config/spotify_creds'
 
 const baseUrl = 'http://localhost:8080'
 const server = agent('http://localhost:8080')
