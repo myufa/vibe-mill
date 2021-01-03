@@ -1,14 +1,13 @@
 import express, { Request, Response, NextFunction} from "express";
-import { authApp } from './auth/api'
-import { spotifyService } from './spotify'
 import cookieSession from "cookie-session";
-import passport from "passport";
 import cors from "cors";
 import cookieParser from "cookie-parser"; // parse cookie header
 import keys from './config/keys'
-import { passportSetup } from './config/passport-setup'
+import { authApp } from './auth/api'
+import { spotifyApp } from './spotify/api'
 
 export const startServer = () => {
+    // Initialized main app
     const app = express();
     const port = process.env.PORT || 8080; // default port to listen
 
@@ -21,24 +20,20 @@ export const startServer = () => {
 
     app.use(cookieParser());
 
-    passportSetup()
-
-    // initalize passport
-    app.use(passport.initialize());
-    // deserialize cookie from the browser
-    app.use(passport.session());
-
+    // Allow cors with client
+    // Will need to change for deployment
     app.use(cors({
         origin: "http://localhost:3000", // allow to server to accept request from different origin
         methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
         credentials: true // allow session cookie from browser to pass through
     }));
 
-    // Add auth routes
+    // Add routes
     app.use('/auth', authApp)
+    app.use('/spotify', spotifyApp)
 
     const authCheck = (req: Request, res: Response, next: NextFunction) => {
-        if (!req.user) {
+        if (!req.session.user) {
             res.status(401).json({
                 authenticated: false,
                 message: "user has not been authenticated"
@@ -55,11 +50,12 @@ export const startServer = () => {
         res.status(200).json({
         authenticated: true,
         message: "user successfully authenticated",
-        user: req.user,
+        user: req.session.user,
         cookies: req.cookies
         });
     });
 
+    // basic activity ping check
     app.get('/ping', ( req, res ) => {
         res.send({ message: 'pong' })
     })

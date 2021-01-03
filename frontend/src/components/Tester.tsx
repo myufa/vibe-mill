@@ -6,7 +6,7 @@ const baseUrl = 'http://localhost:8080'
   
 interface state {
     open: boolean
-    sessiontest: {authToken: string, refreshToken: string}
+    test: any
 }
 
 export class Tester extends Component<{}, state> {
@@ -16,32 +16,60 @@ export class Tester extends Component<{}, state> {
         super({})
         this.state = {
             open: false,
-            sessiontest: {authToken: '', refreshToken: ''}
+            test: {}
         }
 
         this.handleOpen = this.handleOpen.bind(this)
-        this.sessiontest = this.sessiontest.bind(this)
+        this.getArtistTest = this.getArtistTest.bind(this)
+        this.getSomeTopTracksTest = this.getSomeTopTracksTest.bind(this)
+        this.getTest = this.getTest.bind(this)
     }
 
     handleOpen() {
         this.setState({open: !this.state.open})
+
+        if (this.state.open) {
+            this.getArtistTest()
+            this.getSomeTopTracksTest()
+            this.getTest()
+        }        
     }
 
-    async componentDidMount(){
-        await this.sessiontest()
-    }
+    // componentDidMount(){
+    //     this.getArtistTest()
+    // }
 
-    async sessiontest(){
-        const path = '/auth/sessiontest'
-        await axios.get(baseUrl + path)
+    async getArtistTest() {
+        const path = '/spotify/topArtists'
+        await axios.get(baseUrl + path, {
+            withCredentials: true
+        })
         .then(res=>{
-            const { authToken, refreshToken } = res.data
-            console.log('authToken', authToken)
-            const sessiontest = {
-                authToken: authToken,
-                refreshToken: refreshToken
-            }
-            this.setState({sessiontest: sessiontest})
+            const artists = res.data
+            console.log('artists', artists)
+        })
+        .catch((err)=> console.log(err))
+    }
+
+    async getSomeTopTracksTest() {
+        const path = '/spotify/someTopTracks'
+        await axios.get(baseUrl + path, {
+            withCredentials: true
+        })
+        .then(res=>{
+            console.log('tracks', res.data)
+        })
+        .catch((err)=> console.log(err))
+    }
+
+    async getTest() {
+        const path = '/spotify/test'
+        await axios.get(baseUrl + path, {
+            withCredentials: true
+        })
+        .then(res=>{
+            console.log('test', res.data)
+            this.setState({test: res.data})
         })
         .catch((err)=> console.log(err))
     }
@@ -58,10 +86,7 @@ export class Tester extends Component<{}, state> {
                         test data
                         <ul>
                             <li>
-                                authToken: {this.state.sessiontest.authToken}
-                            </li>
-                            <li>
-                                refreshToken: {this.state.sessiontest.refreshToken}
+                                test: { JSON.stringify(this.state.test)}
                             </li>
                         </ul>
                     </div>
