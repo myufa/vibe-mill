@@ -1,65 +1,62 @@
 import React, { Component } from "react";
 import axios from 'axios';
-//import { User } from './../types'
+import { appClient } from '../services/appClient'
+import { TrackList } from './TrackList'
+import { TrackData } from "../lib/types";
 
 const baseUrl = 'http://localhost:8080'
-  
-interface state {
+
+interface State {
     open: boolean
-    test: any
+    test: TrackData[]
 }
 
-export class Tester extends Component<{}, state> {
-    state: state
+export class Tester extends Component<{}, State> {
+    state: State
 
-    constructor() {
-        super({})
+    constructor(props: {}) {
+        super(props)
         this.state = {
             open: false,
-            test: {}
+            test: []
         }
 
         this.handleOpen = this.handleOpen.bind(this)
         this.getArtistTest = this.getArtistTest.bind(this)
         this.getSomeTopTracksTest = this.getSomeTopTracksTest.bind(this)
+        this.generatePlaylist = this.generatePlaylist.bind(this)
         this.getTest = this.getTest.bind(this)
     }
 
     handleOpen() {
         this.setState({open: !this.state.open})
 
-        if (this.state.open) {
+        if (!this.state.open) {
             this.getArtistTest()
             this.getSomeTopTracksTest()
+            this.generatePlaylist()
             this.getTest()
-        }        
+        }
     }
 
-    // componentDidMount(){
-    //     this.getArtistTest()
-    // }
+    componentDidMount(){
+        
+    }
 
     async getArtistTest() {
-        const path = '/spotify/topArtists'
-        await axios.get(baseUrl + path, {
-            withCredentials: true
-        })
-        .then(res=>{
-            const artists = res.data
-            console.log('artists', artists)
-        })
-        .catch((err)=> console.log(err))
+        const artists = await appClient.getTopArtists()
+        console.log('artists', artists)
     }
 
     async getSomeTopTracksTest() {
-        const path = '/spotify/someTopTracks'
-        await axios.get(baseUrl + path, {
-            withCredentials: true
-        })
-        .then(res=>{
-            console.log('tracks', res.data)
-        })
-        .catch((err)=> console.log(err))
+        const tracks = await appClient.getSomeTopTracks()
+        console.log('tracks', tracks)
+    }
+
+    async generatePlaylist() {
+        const tracks = await appClient.generatePlaylist()
+        console.log('generated tracks', tracks)
+        this.setState({test: tracks})
     }
 
     async getTest() {
@@ -67,31 +64,25 @@ export class Tester extends Component<{}, state> {
         await axios.get(baseUrl + path, {
             withCredentials: true
         })
-        .then(res=>{
+        .then(res => {
             console.log('test', res.data)
-            this.setState({test: res.data})
+            // this.setState({test: res.data})
         })
-        .catch((err)=> console.log(err))
+        .catch((err) => console.log(err))
     }
 
     render() {
         return (
             <div>
                 <button onClick={this.handleOpen}>
-                    {!this.state.open ? 'open' : 'close'}
+                    {this.state.open ? 'close' : 'open'}
                 </button>
                 {
-                    this.state.open ?
+                    this.state.test ? 
                     <div>
-                        test data
-                        <ul>
-                            <li>
-                                test: { JSON.stringify(this.state.test)}
-                            </li>
-                        </ul>
+                        <TrackList tracks={this.state.test} />
                     </div>
-                    :
-                    null
+                    : null
                 }
             </div>
         )

@@ -1,0 +1,43 @@
+ul.TrackList {
+    width: 600px;
+    height: 400px;
+    overflow-y: auto;
+    li {
+        padding: 10px;
+        display: flex;
+        box-sizing: border-box;
+        border-bottom: 1px solid rgba(white, .1);
+        background: rgb(81, 72, 83);
+        color: white;
+
+        img {
+            width: 30px;
+            height: 30px;
+            margin-left: 10px;
+            padding: 5px;
+        }
+        
+        .name {
+            font-weight: 500;
+            font-size: 12px;
+            margin-left: 5px;
+            padding-top: 5px;
+        }
+
+        .artists {
+            margin-top: auto;
+        }
+
+        .duration {
+            margin-left: auto;
+        }
+
+        &:hover {
+            cursor: pointer;
+            color: rgb(161, 161, 161);
+        }
+        &.selected {
+            color: grey;
+        }
+    }
+}

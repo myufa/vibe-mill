@@ -1,5 +1,17 @@
-import { SpotifyClient, spotifyClient, User } from './../infrastructure/spotify'
-import { selectRandom, dedupById, dedupByArtist } from './util'
+import { SpotifyClient, spotifyClient } from '../infrastructure/spotifyClient'
+import {
+    ArtistData,
+    PlaylistData,
+    TrackData,
+    UserData,
+} from '../lib/types'
+import {
+    selectRandom,
+    dedupById,
+    dedupByArtist,
+    objectArrayToNames,
+    tracksByArtist
+} from './util'
 
 
 export class SpotifyController {
@@ -10,23 +22,30 @@ export class SpotifyController {
         this.client = spotifyClient
     }
 
-    async getUser(authToken: string) {
+    async getUser(authToken: string): Promise<{ user: UserData }> {
         return { user: await this.client.getUser(authToken) }
     }
 
-    async getTopArtists(authToken: string) {
+    async getPlaylists(authToken: string): Promise<{ playlists: PlaylistData[] }> {
+        return { playlists: await this.client.getPlaylists(authToken) }
+    }
+
+    async getTopArtists(authToken: string): Promise<{ artists: ArtistData[] }> {
         return { artists: (await this.client.getTopArtists(authToken)).slice(0,3) }
     }
 
-    async getArtistTopTracks(artist: string, authToken: string) {
+    async getArtistTopTracks(artist: ArtistData, authToken: string): Promise<{
+        artist: ArtistData;
+        tracks: TrackData[]
+    }> {
         return {
             artist,
-            tracks: (await this.client.getArtistTopTracks(artist, authToken))
+            tracks: await this.client.getArtistTopTracks(artist.id, authToken)
         }
     }
 
     // Gets a few top tracks of users top artists
-    async getSomeTopTracks(authToken: string) {
+    async getSomeTopTracks(authToken: string): Promise<{tracks: TrackData[]}> {
         const artists = await this.client.getTopArtists(authToken)
         const artistIds: string[] = artists.map((artist: any) => artist.id)
         // console.log('artistIds: ', artistIds)
@@ -42,13 +61,12 @@ export class SpotifyController {
         // ^flat is made possible by adding "lib": ["es2019"] to tsconfig compilerOptions
         // takes array of arrays and flattens to one cohesive array
 
-        return {
-            tracks
-        }
+        return { tracks }
 
     }
 
-    async generatePlaylist1(authToken: string) {
+    // Gets random top tracks of artists related to user's top artists
+    async generatePlaylist1(authToken: string): Promise<{tracks: TrackData[]}> {
         // Selection amounts for each step
         const N = 10
         const M = 10
@@ -75,7 +93,7 @@ export class SpotifyController {
         relatedArtistIds = selectRandom(relatedArtistIds, M)
 
         // Get top tracks of artists related to user's top artists
-        let tracks: any[] = (
+        let tracks= (
             await Promise.all(
                 relatedArtistIds.map(artistId => {
                     return this.client.getArtistTopTracks(artistId, authToken)
@@ -84,22 +102,26 @@ export class SpotifyController {
         )
         .flat(1)
 
-        // select unique random cohort of tracks
-        tracks = selectRandom(dedupById(tracks), p)
+        // Ensure no track is by the same artist
+        tracks = dedupByArtist(tracks)
 
-        return tracks
+        // select unique random cohort of tracks
+        tracks = selectRandom(tracks, p)
+
+        return { tracks }
     }
 
-    async generatePlaylist3(authToken: string) {
+    // Gets random tracks from random albums of artists related to user's top artists
+    async generatePlaylist2(authToken: string): Promise<{tracks: TrackData[]}> {
         // Selection amounts for each step
-        const N = 10
-        const M = 10
-        const p = 5
+        const N = 20
+        const M = 20
+        const p = 10
 
         // Get a random cohort of user's top artists
         const artists = await this.client.getTopArtists(authToken)
         let artistIds: string[] = artists.map((artist) => artist.id)
-        artistIds = selectRandom(artistIds, N)
+        //artistIds = selectRandom(artistIds, N)
 
         // Get artists related to the user's top artists
         const relatedArtists = (
@@ -115,8 +137,9 @@ export class SpotifyController {
         // Select random cohort
         relatedArtistIds = selectRandom(relatedArtistIds, M)
 
+
         // Get a couple randomly selected albums from each artist related the user's top artists
-        const albums: any[] = (
+        const albums = (
             await Promise.all(
                 relatedArtistIds.map(artistId => {
                     return this.client.getArtistAlbums(artistId, authToken)
@@ -124,7 +147,7 @@ export class SpotifyController {
             )
         )
         .map(collection => {
-            return dedupById(selectRandom(collection, 2))
+            return selectRandom(collection, 2)
         })
         .flat(1)
 
@@ -134,24 +157,30 @@ export class SpotifyController {
         albumIds = selectRandom(albumIds, p)
 
         // Get track objects for each album selected
-        const albumsWithTracks: any[] = await this.client.getAlbums(albumIds, authToken)
+        const albumsWithTracks = await this.client.getAlbums(albumIds, authToken)
 
         // Get randomly selected tracks from albums of artists related user's top artists
-        let tracks = albumsWithTracks.map(album => {
-            return album.tracks.items
+        const simpleTracks = albumsWithTracks.map(album => {
+            return album.tracks
         })
         .map(album => {
-            return dedupById(selectRandom(album, 15))
+            return selectRandom(album, 15)
         })
         .flat(1)
+
+        // Get track ids of simple tracks to convert to full track objects
+        const trackIds = simpleTracks.map(track => track.id)
+
+        // Get track objects
+        let tracks = await spotifyClient.getTracks(trackIds, authToken)
 
         // Ensure no track is by the same artist
         tracks = dedupByArtist(tracks)
 
         // select unique random cohort of tracks
-        tracks = selectRandom(dedupById(tracks), p)
-        
-        return tracks
+        tracks = selectRandom(tracks, p)
+
+        return { tracks }
     }
 
 

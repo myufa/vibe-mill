@@ -3,4 +3,6 @@ extends:
   - tslint-react
 rules:
   jsx-wrap-multiline: false
-  no-unused-vars: false
+  no-console: false
+  #no-unused-variable: false
+  #noUnusedLocals: false

@@ -31,6 +31,7 @@ export const startServer = () => {
     // Add routes
     app.use('/auth', authApp)
     app.use('/spotify', spotifyApp)
+    app.use('/static', express.static(__dirname + '/static'))
 
     const authCheck = (req: Request, res: Response, next: NextFunction) => {
         if (!req.session.user) {

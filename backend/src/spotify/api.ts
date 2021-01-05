@@ -1,6 +1,5 @@
 import express from 'express'
 import { spotifyController } from './controller'
-import { simplifyTracks } from './util'
 
 const app = express()
 
@@ -9,23 +8,37 @@ app.get('/user', async (req, res) => {
     res.send(await spotifyController.getUser(req.session.authToken))
 })
 
-app.get('/topArtists', async (req, res) => {
+app.get('/top-artists', async (req, res) => {
     console.log('hit /topArtists')
     res.send(await spotifyController.getTopArtists(req.session.authToken))
 })
 
-app.get('/someTopTracks', async (req, res) => {
+app.get('/some-top-tracks', async (req, res) => {
     console.log('hit /someTopTracks')
     const result = await spotifyController.getSomeTopTracks(req.session.authToken)
     res.send(result)
 })
 
+app.get('/user-playlists', async (req, res) => {
+    console.log('hit /user-playlist')
+    const playlists = await spotifyController.getPlaylists(req.session.authToken)
+    console.log('final tracks', playlists)
+
+    res.send(playlists)
+})
+
+app.get('/generate-playlist', async (req, res) => {
+    console.log('hit /generate-playlist')
+    const playlist = await spotifyController.generatePlaylist2(req.session.authToken)
+    res.send(playlist)
+})
+
 app.get('/test', async (req, res) => {
     console.log('hit /test')
-    const playlistTest = await spotifyController.generatePlaylist3(req.session.authToken)
-    console.log(simplifyTracks(playlistTest))
+    const playlistTest = await spotifyController.generatePlaylist1(req.session.authToken)
+    console.log('final tracks', playlistTest)
 
-    res.send({ message: simplifyTracks(playlistTest) })
+    res.send({ message: playlistTest })
 })
 
 

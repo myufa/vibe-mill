@@ -2,7 +2,7 @@ import express from "express";
 import querystring from 'querystring';
 import KEYS from '../config/keys'
 import { generateRandomString } from './authUtil'
-import { spotifyClient } from './../infrastructure/spotify'
+import { spotifyClient } from '../infrastructure/spotifyClient'
 
 // Initialize auth app
 const app = express();
@@ -14,13 +14,17 @@ const API_DOMAIN = 'http://localhost:8080'
 app.get("/login/success", (req, res) => {
   console.log('hit /auth/login/success')
   if (req.session.user) {
+    console.log('success')
     res.json({
       success: true,
       message: "user has successfully authenticated",
       user: req.session.user,
       cookies: req.cookies
     });
+  } else {
+    console.log('failure')
   }
+
 });
 
 // when login failed, send failed msg

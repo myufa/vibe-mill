@@ -1,84 +1,34 @@
-import React, { Component } from "react";
-import PropTypes from "prop-types";
-import axios, { /*AxiosInstance,*/ AxiosResponse, /*AxiosRequestConfig*/ } from 'axios';
-import Header from "./Header";
-import { User } from './../types'
+import React, { FC, useEffect, useState } from "react";
+import { Header } from './Header';
+import { UserData } from '../lib/types'
 import { Tester } from './Tester'
+import { appClient } from "../services/appClient";
 
-interface successResponse {
-  success?: boolean
-  message?: string
-  user: User
-  cookies?: any
-}
+export const HomePage: FC = () => {
+  const [ user, setUser ] = useState<UserData | null>(null)
+  const [ photoUrl, setPhotoUrl ] = useState<string | undefined>(undefined)
+  const [ authenticated, setAuthenticated ] = useState(false)
 
-interface state {
-  user: User
-  error: string | null
-  authenticated: boolean
-  photoUrl?: string | null
-}
-
-export default class HomePage extends Component<{}, state> {
-  static propTypes = {
-    user: PropTypes.shape({
-      name: PropTypes.string,
-      profileImageUrl: PropTypes.string,
-      twitterId: PropTypes.string,
-      screenName: PropTypes.string,
-      _id: PropTypes.string
-    })
-  };
-
-  state: state = {
-    user: {},
-    error: null,
-    authenticated: false,
-    photoUrl: null
-  };
-
-  componentDidMount() {
-    // Fetch does not send cookies. So you should add credentials: 'include'
-    axios.get("http://localhost:8080/auth/login/success", {
-      withCredentials: true,
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-        "Access-Control-Allow-Credentials": true
-      }
-    })
-    .then((response: AxiosResponse<successResponse>) => {
-      if (response.status === 200) return response.data;
-      throw new Error("failed to authenticate user");
-    })
-    .then(responseJson => {        
-      this.setState({
-        authenticated: true,
-        user: responseJson.user
-      });
-      this.setState({
-        photoUrl: this.state.user.profilePic ? this.state.user.profilePic : null
-      });
-      console.log(this.state)
+  const login = () => {
+    appClient.loginSuccess()
+    .then(user => {
+      setUser(user)
+      setAuthenticated(true)
+      setPhotoUrl(user.profilePic)
     })
     .catch(error => {
-      this.setState({
-        authenticated: false,
-        error: "Failed to authenticate user"
-      });
+      setAuthenticated(false)
     });
   }
 
+  useEffect(login, [])
 
-
-  render() {
-    const { authenticated } = this.state;
-    return (
-      <div>
+  return (
+    <div>
         <Header
           authenticated={authenticated}
-          handleNotAuthenticated={this._handleNotAuthenticated}
-          photoUrl={this.state.photoUrl}
+          handleNotAuthenticated={() => setAuthenticated(false)}
+          photoUrl={photoUrl}
         />
         <div>
           {!authenticated ? (
@@ -86,15 +36,12 @@ export default class HomePage extends Component<{}, state> {
           ) : (
             <div>
               <h1>You have logged in successfully!</h1>
-              <h2>Welcome {this.state.user.displayName}!</h2>
+              <h2>Welcome {user?.displayName}!</h2>
             </div>
           )}
         </div>
         <Tester />
       </div>
-    );
-  }
-  _handleNotAuthenticated = () => {
-    this.setState({ authenticated: false });
-  };
+  )
+
 }

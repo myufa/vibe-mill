@@ -1,0 +1,24 @@
+div.Header {
+    display: flex;
+    width:auto;
+
+
+    img.profile-pic {
+        margin: 10px;
+        padding-bottom: 10px;
+        padding-top: 10px;
+        width: 50px;
+        height: 50px;
+    }
+
+    .home-link {
+        font-size: medium;
+        margin: auto auto;
+    }
+
+    button.logger {
+        margin: 0 0 0 auto;
+    }
+
+
+}
