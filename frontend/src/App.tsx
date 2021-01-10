@@ -1,9 +1,11 @@
 import React, { Component } from "react";
-import { AppRouter } from "./AppRouter";
+import { Main } from './scenes'
 
 class App extends Component {
   render() {
-    return <AppRouter />;
+    return (
+      <Main />
+    )
   }
 }
 

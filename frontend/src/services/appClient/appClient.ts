@@ -2,7 +2,11 @@ import axios from "axios";
 import { UserData, TrackData } from "../../lib/types";
 
 export class AppClient {
-    baseUrl = 'http://localhost:8080/'
+    baseUrl: string
+
+    constructor() {
+        this.baseUrl = 'http://localhost:8080/'
+    }
 
     async callApp(path: string, headers?: any) {
         console.log('calling: ', this.baseUrl + path)

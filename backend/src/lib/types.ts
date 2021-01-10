@@ -11,7 +11,7 @@ export interface TrackData {
     id: string
     name: string
     artists: string[]
-    album: string[]
+    album: string
     imageUrl: string
     duration: string
 }
