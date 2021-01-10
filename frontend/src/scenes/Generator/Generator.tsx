@@ -2,6 +2,7 @@ import React, { FC, useState } from "react";
 import { TrackList } from "../../components/TrackList";
 import { TrackData } from '../../lib/types'
 import { appClient } from "../../services/appClient";
+import './Generator.scss'
 
 export const Generator: FC = () => {
     const [ tracks, setTracks ] = useState<TrackData[]>([])
