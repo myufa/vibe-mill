@@ -5,6 +5,8 @@ import { Main } from './scenes'
 import { Header } from "./scenes/components/Header";
 import { Generator } from "./scenes/Generator";
 import { appClient } from "./services/appClient";
+import { ProtectedRoute } from './lib/ProtectedRoute'
+import './App.scss'
 
 const App: FC = () => {
   const [ user, setUser ] = useState<UserData | null>(null)
@@ -25,7 +27,7 @@ const App: FC = () => {
   
   useEffect(login, [authenticated])
   return (
-    <div>
+    <div className='App'>
       <div  className='HeaderSection'>
         <Header
             authenticated={authenticated} 
@@ -39,16 +41,10 @@ const App: FC = () => {
             exact={true} path="/" 
             render={(props) => (<Main authenticated={authenticated}/>)} 
           />
-          {authenticated ? 
-            <>
-              <Route 
-              exact={true} path="/Generator/" 
-              render={() => (<Generator />)} 
-              />
-            </>
-            :
-            null
-          }
+          <ProtectedRoute
+            exact={true} path="/Generator/" 
+            Comp={Generator} 
+          />
           
         </div>
       </Router>

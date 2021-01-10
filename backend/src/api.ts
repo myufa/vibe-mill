@@ -12,11 +12,14 @@ export const startServer = () => {
     const port = process.env.PORT || 8080; // default port to listen
 
     // cookies
-    app.use(cookieSession({
+    const cookieOptions: CookieSessionInterfaces.CookieSessionOptions = {
         name: "session",
         keys: [keys.COOKIE_KEY],
+        sameSite: "strict",
         maxAge: 24 * 60 * 60 * 100
-    }))
+    }
+    if (process.env.stage === 'prod') cookieOptions.secure = true
+    app.use(cookieSession(cookieOptions))
 
     app.use(cookieParser());
 

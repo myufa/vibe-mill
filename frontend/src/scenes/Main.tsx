@@ -1,6 +1,5 @@
 import React, { FC, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Generator } from './Generator'
 import { LoginButton } from './components/LoginButton'
 import './Main.scss'
 

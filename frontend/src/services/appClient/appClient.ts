@@ -1,21 +1,28 @@
-import axios from "axios";
+import axios, { AxiosResponse, CancelTokenStatic } from "axios";
+import { Type } from "typescript";
 import { UserData, TrackData } from "../../lib/types";
 
 export class AppClient {
     baseUrl: string
+    CancelToken: CancelTokenStatic
+    isCancel: (value: any) => boolean
 
     constructor() {
         this.baseUrl = 'http://localhost:8080/'
+        this.CancelToken = axios.CancelToken
+        this.isCancel = axios.isCancel
     }
 
-    async callApp(path: string, headers?: any) {
+    async callApp(path: string, headers?: any, options?: any) {
         console.log('calling: ', this.baseUrl + path)
-        let result: any
+        let result: AxiosResponse
         try {
             result = await axios.get(this.baseUrl + path, {
                 withCredentials: true,
-                headers: { ...headers }
+                headers: { ...headers },
+                ...options
             })
+            console.log(result.status)
         } catch (err) {
             console.log(err)
             throw err
@@ -32,13 +39,13 @@ export class AppClient {
         window.open(this.baseUrl + "auth/logout", "_self");
     }
 
-    async loginSuccess(): Promise<UserData> {
+    async loginSuccess(options?: any): Promise<UserData> {
         const headers = {
             Accept: "application/json",
             "Content-Type": "application/json",
             "Access-Control-Allow-Credentials": true
         }
-        const result =  await this.callApp('auth/login/success', headers)
+        const result =  await this.callApp('auth/login/success', headers, options)
         return result.user
     }
 

@@ -23,6 +23,10 @@ app.get("/login/success", (req, res) => {
     });
   } else {
     console.log('failure')
+    res.status(401)
+    res.json({
+      message: 'Not authenticated'
+    })
   }
 
 });
