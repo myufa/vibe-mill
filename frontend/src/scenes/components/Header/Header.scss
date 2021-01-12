@@ -19,6 +19,10 @@ $font-prefix: "~@ibm/plex";
         font-size: 55px;
         text-align: center;
         align-items: center;
+
+        &:hover {
+            cursor: pointer;
+        }
     }
 
     .profilePic {

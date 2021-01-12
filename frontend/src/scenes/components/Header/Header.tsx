@@ -1,4 +1,5 @@
 import React, { FC, useState } from "react";
+import { Redirect } from "react-router-dom";
 import { appClient } from '../../../services/appClient'
 import './Header.scss'
 
@@ -22,7 +23,8 @@ export const Header: FC<{
                 :   
                 null
             }
-            <span className='Title'>The Vibe Mill</span>
+            <span className='Title' onClick={()=>window.location.href='/'}
+            >The Vibe Mill</span>
         </div>
     )
 }

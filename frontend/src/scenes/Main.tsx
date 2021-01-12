@@ -14,9 +14,9 @@ export const Main: FC<{authenticated: boolean}> = (props) => {
                         <Link className='PathLink' to='/Generator/' >
                             The Generator
                         </Link>
-                        <div className='PathLink'>
+                        <Link className='PathLink' to='/Reorganizer/'>
                             The Re-Vibe-Inator
-                        </div>
+                        </Link>
                     </div> 
                 :
                     <div className='NoAuthDirector'>

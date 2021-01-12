@@ -20,16 +20,30 @@ app.get('/some-top-tracks', async (req, res) => {
 })
 
 app.get('/user-playlists', async (req, res) => {
-    console.log('hit /user-playlist')
+    console.log('hit /user-playlists')
     const playlists = await spotifyController.getPlaylists(req.session.authToken)
-    console.log('final tracks', playlists)
-
     res.send(playlists)
+})
+
+app.get('/playlist', async (req, res) => {
+    console.log('hit /playlist')
+    const { playlistId } = req.body
+    const playlist = await spotifyController.getPlaylist(playlistId, req.session.authToken)
+    res.send(playlist)
 })
 
 app.get('/generate-playlist', async (req, res) => {
     console.log('hit /generate-playlist')
-    const playlist = await spotifyController.generatePlaylist2(req.session.authToken)
+    const playlists = await spotifyController.generatePlaylist2(req.session.authToken)
+    console.log(playlists)
+    res.send(playlists)
+})
+
+app.post('/save-playlist', async (req, res) => {
+    console.log('hit /save-playlist')
+    const { trackIds, playlistName } = req.body
+    const playlist = await spotifyController.savePlaylist(trackIds, playlistName, req.session.user.id, req.session.authToken)
+    console.log(playlist)
     res.send(playlist)
 })
 

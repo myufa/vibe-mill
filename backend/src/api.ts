@@ -1,4 +1,5 @@
 import express, { Request, Response, NextFunction} from "express";
+import bodyParser from 'body-parser'
 import cookieSession from "cookie-session";
 import cors from "cors";
 import cookieParser from "cookie-parser"; // parse cookie header
@@ -30,6 +31,8 @@ export const startServer = () => {
         methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
         credentials: true // allow session cookie from browser to pass through
     }));
+
+    app.use(bodyParser.json())
 
     // Add routes
     app.use('/auth', authApp)

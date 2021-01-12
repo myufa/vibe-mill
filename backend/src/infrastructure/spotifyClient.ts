@@ -15,7 +15,7 @@ export class SpotifyClient {
     }
 
     // wrapper function to simplify axios call for all spotify-api interactions
-    async callSpotify(path: string, method: Method, authToken: string, params?: any) {
+    async callSpotify(path: string, method: Method, authToken: string, params?: any, options?: any) {
         let result: any
         if (!path || !method || !authToken) {
             throw new Error("Missing Request vars")
@@ -27,7 +27,8 @@ export class SpotifyClient {
                 method,
                 headers: {
                         'Authorization': 'Bearer ' + authToken
-                }
+                },
+                ...options
             })
         } catch(err) {
             console.log(err)
@@ -84,35 +85,52 @@ export class SpotifyClient {
 
     async getPlaylistTracks(playlistId: string, authToken: string): Promise<TrackData[]> {
         const params = {
-            limit: 10
+            limit: 100
         }
         const data: any = await this.callSpotify(
             `me/playlists/${playlistId}/tracks`,
             'get',
             authToken,
-            params
+            //params
         )
         const trackProtos: any[] = data.items.map((item: any) => item.track)
         const result = trackProtos.map(convertTrack)
         return result
     }
 
-    async getPlaylists(authToken: string): Promise<Reference[]> {
-        const data = await this.callSpotify('me/playlists', 'get', authToken)
-        const playlistProtos: any[] = data.items
-        const result: Reference[] = playlistProtos.map(convertReference)
-        return result
+    async getPlaylist(playlistId: string,authToken: string): Promise<PlaylistData> {
+        const data = await this.callSpotify(`playlists/${playlistId}`, 'get', authToken)
+        const playlist = convertPlaylist(data)
+        return playlist
+    }
+
+    async getPlaylists(authToken: string): Promise<PlaylistData[]> {
+        const playlists: PlaylistData[] = []
+        let numFetches = 0
+        while (numFetches < 10) {
+            const offset = numFetches * 50
+            const data = await this.callSpotify(
+                `me/playlists?limit=50&offset=${offset}`, 
+                'get', authToken)
+            const playlistProtos: any[] = data.items
+            const result: PlaylistData[] = playlistProtos.map(convertPlaylist)
+            playlists.push(...result)
+            if(!data.next) break
+            numFetches = numFetches + 1
+        }        
+        
+        return playlists
     }
 
     async getTopArtists(authToken: string): Promise<ArtistData[]> {
-        const data = await this.callSpotify('me/top/artists', 'get', authToken)
+        const data = await this.callSpotify('me/top/artists?limit=50', 'get', authToken)
         const artistProtos: any[] = data.items
         const result: ArtistData[] = artistProtos.map(convertArtist)
         return data.items
     }
 
     async getTopTracks(authToken: string): Promise<TrackData[]> {
-        const data = await this.callSpotify('me/top/tracks', 'get', authToken)
+        const data = await this.callSpotify('me/top/tracks?limit=50', 'get', authToken)
         const trackProtos = data.tracks
         const result: TrackData[] = trackProtos.map(convertTrack)
         return result
@@ -138,7 +156,7 @@ export class SpotifyClient {
         if (limit) {
             params.limit = limit
         }
-        const data = await this.callSpotify(`artists/${artistId}/albums`, 'get', authToken, params)
+        const data = await this.callSpotify(`artists/${artistId}/albums?limit=5`, 'get', authToken, params)
         const albumProtos = data.items
         const result: Reference[] = albumProtos.map(convertReference)
         return result
@@ -156,14 +174,43 @@ export class SpotifyClient {
     }
 
     async getTracks(trackIds: string[], authToken: string): Promise<TrackData[]> {
-        const params = {
-            market: 'from_token',
-            ids: trackIds.slice(0,50).reduce((ids, nextId) => ids + ',' + nextId)
+        const tracks: TrackData[] = []
+        let offset = 50
+        while (offset < trackIds.length) {
+            const params = {
+                market: 'from_token',
+                ids: trackIds.slice(offset - 50,offset).reduce((ids, nextId) => ids + ',' + nextId)
+            }
+            const data = await this.callSpotify(`tracks`, 'get', authToken, params)
+            const trackProtos = data.tracks
+            const result: TrackData[] = trackProtos.map(convertTrack)
+            tracks.push(...result)
+            offset = offset + 50
         }
-        const data = await this.callSpotify(`tracks`, 'get', authToken, params)
-        const trackProtos = data.tracks
-        const result: TrackData[] = trackProtos.map(convertTrack)
-        return result
+        
+        return tracks
+    }
+
+    async createPlaylist(playlistName: string, userId: string, authToken: string): Promise<PlaylistData> {
+        const options = { data: { name: playlistName }}
+        const data = await this.callSpotify(`users/${userId}/playlists`, 'post', authToken, {}, options)
+        const playlist = convertPlaylist(data)
+        return playlist
+    }
+
+    async addTracksToPlaylist(
+        playlistId: string, 
+        trackIds: string[], 
+        authToken: string
+    ): Promise<undefined> {
+        const options = {
+            data: {
+                uris: trackIds.map(trackId => `spotify:track:${trackId}`)
+            }
+        }
+        const data = await this.callSpotify(`playlists/${playlistId}/tracks`, 'post', authToken, {}, options)
+        if (!data) throw new Error('Could not add tracks')
+        return undefined
     }
 }
 
@@ -214,6 +261,14 @@ const convertAlbum = (albumProto: any): AlbumData => {
                 name: trackProto.name
             }
         })
+    }
+}
+
+const convertPlaylist = (playlistProto: any): PlaylistData => {
+    return {
+        id: playlistProto.id,
+        name: playlistProto.name,
+        coverUrl: playlistProto.images.length ? playlistProto.images[0].url : []
     }
 }
 

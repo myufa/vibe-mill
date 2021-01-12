@@ -7,9 +7,7 @@ export interface UserData {
     product: "premium" | "free"
 }
 
-export interface TrackData {
-    id: string
-    name: string
+export interface TrackData extends Reference {
     artists: string[]
     album: string
     imageUrl: string
@@ -20,15 +18,13 @@ export interface ArtistData extends Reference {
     images?: string[]
 }
 
-export interface AlbumData {
-    id: string
-    name: string
+export interface AlbumData extends Reference {
     tracks: TrackData[] | Reference[]
     duration?: number
 }
 
 export interface PlaylistData extends Reference {
-    duration?: number
+    coverUrl: string
 }
 
 export interface Reference {

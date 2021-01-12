@@ -1,6 +1,6 @@
-import axios, { AxiosResponse, CancelTokenStatic } from "axios";
+import axios, { AxiosResponse, CancelTokenStatic, Method } from "axios";
 import { Type } from "typescript";
-import { UserData, TrackData } from "../../lib/types";
+import { UserData, TrackData, PlaylistData } from "../../lib/types";
 
 export class AppClient {
     baseUrl: string
@@ -13,12 +13,14 @@ export class AppClient {
         this.isCancel = axios.isCancel
     }
 
-    async callApp(path: string, headers?: any, options?: any) {
+    async callApp(path: string, method: Method , headers?: any, options?: any) {
         console.log('calling: ', this.baseUrl + path)
         let result: AxiosResponse
         try {
-            result = await axios.get(this.baseUrl + path, {
+            result = await axios({
                 withCredentials: true,
+                url: this.baseUrl + path,
+                method,
                 headers: { ...headers },
                 ...options
             })
@@ -45,38 +47,45 @@ export class AppClient {
             "Content-Type": "application/json",
             "Access-Control-Allow-Credentials": true
         }
-        const result =  await this.callApp('auth/login/success', headers, options)
+        const result =  await this.callApp('auth/login/success', 'get', headers, options)
         return result.user
     }
 
     async getTest() {
-        const result = await this.callApp('/spotify/test')
+        const result = await this.callApp('/spotify/test', 'get')
         return result
     }
 
     async getUserData(): Promise<UserData> {
-        const result = await this.callApp('spotify/user')
+        const result = await this.callApp('spotify/user', 'get')
         return result.user
     }
 
-    async getPlaylists() {
-        const result = await this.callApp('spotify/user-playlists')
-        return result
+    async getPlaylists(): Promise<PlaylistData[]> {
+        const result = await this.callApp('spotify/user-playlists', 'get')
+        console.log('playlist result', result)
+        return result.playlists
     }
 
     async getTopArtists() {
-        const result = await this.callApp('spotify/top-artists')
+        const result = await this.callApp('spotify/top-artists', 'get')
         return result
     }
 
     async getSomeTopTracks() {
-        const result = await this.callApp('spotify/some-top-tracks')
+        const result = await this.callApp('spotify/some-top-tracks', 'get')
         return result
     }
 
     async generatePlaylist(): Promise<TrackData[]> {
-        const result: {tracks: TrackData[]} = await this.callApp('spotify/generate-playlist')
+        const result: { tracks: TrackData[] } = await this.callApp('spotify/generate-playlist', 'get')
         return result.tracks
+    }
+
+    async savePlaylist(trackIds: string[], playlistName: string): Promise<PlaylistData> {
+        const options = { data: { trackIds, playlistName } }
+        const result: { playlist: PlaylistData } = await this.callApp('spotify/save-playlist', 'post', {}, options)
+        return result.playlist
     }
 
 

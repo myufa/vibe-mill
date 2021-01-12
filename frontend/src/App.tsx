@@ -4,6 +4,7 @@ import { UserData } from "./lib/types";
 import { Main } from './scenes'
 import { Header } from "./scenes/components/Header";
 import { Generator } from "./scenes/Generator";
+import { Reorganizer } from "./scenes/Reorganizer";
 import { appClient } from "./services/appClient";
 import { ProtectedRoute } from './lib/ProtectedRoute'
 import './App.scss'
@@ -12,16 +13,19 @@ const App: FC = () => {
   const [ user, setUser ] = useState<UserData | null>(null)
   const [ profilePicUrl, setProfilePicUrl ] = useState<string | undefined>(undefined)
   const [ authenticated, setAuthenticated ] = useState(false)
+  const [ loading, setLoading ] = useState(true)
 
   const login = () => {
       appClient.loginSuccess()
       .then(user => {
         setUser(user)
         setAuthenticated(true)
+        setLoading(false)
         setProfilePicUrl(user.profilePic)
       })
       .catch(error => {
         setAuthenticated(false)
+        setLoading(false)
       });
   }
   
@@ -37,14 +41,25 @@ const App: FC = () => {
       </div>
       <Router>
         <div className='MainSection'>
-          <Route 
-            exact={true} path="/" 
-            render={(props) => (<Main authenticated={authenticated}/>)} 
-          />
-          <ProtectedRoute
-            exact={true} path="/Generator/" 
-            Comp={Generator} 
-          />
+          {!loading ? 
+            <>
+              <Route 
+                exact={true} path="/" 
+                render={(props) => (<Main authenticated={authenticated}/>)} 
+              />
+              <ProtectedRoute
+                exact={true} path="/Generator/" 
+                Comp={Generator} 
+              />
+              <ProtectedRoute
+                exact={true} path="/Reorganizer/" 
+                Comp={Reorganizer} 
+              />
+            </>
+          :
+            null
+          }
+          
           
         </div>
       </Router>

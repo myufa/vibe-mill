@@ -26,6 +26,11 @@ export const dedupByArtist = (list: TrackData[]) => {
     return _.uniqBy(list, (item)=>item.artists[0])
 }
 
+// Remove duplicates from a list based on album param
+export const dedupByAlbum = (list: TrackData[]) => {
+    return _.uniqBy(list, 'album')
+}
+
 export const objectArrayToNames = (list: any[]) => {
     return list.map(item => item.name)
 }

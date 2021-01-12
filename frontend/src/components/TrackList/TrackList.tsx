@@ -15,7 +15,6 @@ export const TrackList: FC<{tracks: TrackData[]}> = (props) => {
                      title={`${track.name} by: ${artistString}`}
                 >{track.name.slice(0,20)}</div>
                 <div className='artists'>{artistString.slice(0,20)}</div>
-                <div className='album'>{track.album}</div>
                 <div className='duration'>-{track.duration}</div>
             </div>
         )

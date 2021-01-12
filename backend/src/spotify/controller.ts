@@ -10,7 +10,8 @@ import {
     dedupById,
     dedupByArtist,
     objectArrayToNames,
-    tracksByArtist
+    tracksByArtist,
+    dedupByAlbum
 } from './util'
 
 
@@ -28,6 +29,10 @@ export class SpotifyController {
 
     async getPlaylists(authToken: string): Promise<{ playlists: PlaylistData[] }> {
         return { playlists: await this.client.getPlaylists(authToken) }
+    }
+
+    async getPlaylist(playlistId: string, authToken: string): Promise<{tracks: TrackData[]}> {
+        return { tracks: await spotifyClient.getPlaylistTracks(playlistId, authToken) }
     }
 
     async getTopArtists(authToken: string): Promise<{ artists: ArtistData[] }> {
@@ -154,7 +159,7 @@ export class SpotifyController {
         let albumIds: string[] = albums.map(album => album.id)
 
         // Select random cohort
-        albumIds = selectRandom(albumIds, p)
+        albumIds = selectRandom(albumIds, 20)
 
         // Get track objects for each album selected
         const albumsWithTracks = await this.client.getAlbums(albumIds, authToken)
@@ -175,12 +180,27 @@ export class SpotifyController {
         let tracks = await spotifyClient.getTracks(trackIds, authToken)
 
         // Ensure no track is by the same artist
+        tracks = dedupByAlbum(tracks)
+
+        // Ensure no track is by the same artist
         tracks = dedupByArtist(tracks)
 
         // select unique random cohort of tracks
         tracks = selectRandom(tracks, p)
 
         return { tracks }
+    }
+
+    async savePlaylist(
+        trackIds: string[], 
+        playlistName: string, 
+        userId: string, 
+        authToken: string
+    ): Promise<{ playlist: PlaylistData }> {
+        let playlist = await spotifyClient.createPlaylist(playlistName, userId, authToken)
+        await spotifyClient.addTracksToPlaylist(playlist.id, trackIds, authToken)
+        playlist = await spotifyClient.getPlaylist(playlist.id, authToken)
+        return { playlist }
     }
 
 
