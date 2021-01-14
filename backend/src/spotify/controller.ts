@@ -1,5 +1,6 @@
 import { SpotifyClient, spotifyClient } from '../infrastructure/spotifyClient'
 import {
+    AnalyzedTrackData,
     ArtistData,
     PlaylistData,
     TrackData,
@@ -196,14 +197,18 @@ export class SpotifyController {
         playlistName: string, 
         userId: string, 
         authToken: string
-    ): Promise<{ playlist: PlaylistData }> {
-        let playlist = await spotifyClient.createPlaylist(playlistName, userId, authToken)
+    ): Promise<{ tracks: TrackData[] }> {
+        const playlist = await spotifyClient.createPlaylist(playlistName, userId, authToken)
         await spotifyClient.addTracksToPlaylist(playlist.id, trackIds, authToken)
-        playlist = await spotifyClient.getPlaylist(playlist.id, authToken)
-        return { playlist }
+        const tracks = await spotifyClient.getPlaylistTracks(playlist.id, authToken)
+        return { tracks }
     }
 
-
+    async reorganizePlaylist(playlistId: string, authToken: string): Promise<{tracks: AnalyzedTrackData[]}> {
+        const simpleTracks = await spotifyClient.getPlaylistTracks(playlistId, authToken)
+        const analyzedTracks = await spotifyClient.getTracksFeatures(simpleTracks, authToken)
+        return { tracks: analyzedTracks }
+    }
 }
 
 export const spotifyController = new SpotifyController()

@@ -1,7 +1,8 @@
 import axios, { Method } from "axios"
+import _ from "lodash"
 import qs from "qs"
 import KEYS from "../config/keys"
-import { AlbumData, ArtistData, PlaylistData, Reference, TrackData, UserData } from '../lib/types'
+import { AlbumData, AnalyzedTrackData, ArtistData, PlaylistData, Reference, TrackAnalysis, TrackData, UserData } from '../lib/types'
 
 const DEFAULT_PROFILE_PIC_URL = ''
 
@@ -84,18 +85,48 @@ export class SpotifyClient {
     }
 
     async getPlaylistTracks(playlistId: string, authToken: string): Promise<TrackData[]> {
-        const params = {
-            limit: 100
+        const tracks: TrackData[] = []
+        let numFetches = 0
+        const limit = 100
+        while(numFetches < 4) {
+            const offset = numFetches * 100
+            const data: any = await this.callSpotify(
+                `playlists/${playlistId}/tracks?limit=${limit}&offset=${offset}`,
+                'get',
+                authToken,
+                //params
+            )
+            const trackProtos: any[] = data.items.map((item: any) => item.track)
+            const result = trackProtos.map(convertTrack)
+            tracks.push(...result)
+            if(!data.next) break
+            numFetches = numFetches + 1
         }
-        const data: any = await this.callSpotify(
-            `me/playlists/${playlistId}/tracks`,
-            'get',
-            authToken,
-            //params
-        )
-        const trackProtos: any[] = data.items.map((item: any) => item.track)
-        const result = trackProtos.map(convertTrack)
-        return result
+        return tracks
+    }
+
+    async getTracksFeatures(tracks: TrackData[], authToken: string): Promise<AnalyzedTrackData[]> {
+        const trackAnalyses: TrackAnalysis[] = []
+        const trackIds = tracks.map(track => track.id)
+        let offset = 100
+        while (trackAnalyses.length < tracks.length) {
+            const params = {
+                ids: trackIds.slice(offset - 100, offset).reduce((ids, nextId) => ids + ',' + nextId)
+            }
+            const data = await this.callSpotify(`audio-features`, 'get', authToken, params)
+            console.log('analysisdata: ', data)
+            const trackAnalysisProtos = data.audio_features
+            const result: TrackAnalysis[] = trackAnalysisProtos.map(convertTrackAnalysis)
+            trackAnalyses.push(...result)
+            offset = offset + 100
+        }
+        console.log('trackAnalyses', trackAnalyses)
+
+        const analyzedTracks: AnalyzedTrackData[] = _.zipWith(tracks, trackAnalyses, (track, analysis) => {
+            return {...track, ...analysis}
+        })
+        
+        return analyzedTracks
     }
 
     async getPlaylist(playlistId: string,authToken: string): Promise<PlaylistData> {
@@ -107,10 +138,11 @@ export class SpotifyClient {
     async getPlaylists(authToken: string): Promise<PlaylistData[]> {
         const playlists: PlaylistData[] = []
         let numFetches = 0
+        const limit = 50
         while (numFetches < 10) {
             const offset = numFetches * 50
             const data = await this.callSpotify(
-                `me/playlists?limit=50&offset=${offset}`, 
+                `me/playlists?limit=${limit}&offset=${offset}`, 
                 'get', authToken)
             const playlistProtos: any[] = data.items
             const result: PlaylistData[] = playlistProtos.map(convertPlaylist)
@@ -212,6 +244,10 @@ export class SpotifyClient {
         if (!data) throw new Error('Could not add tracks')
         return undefined
     }
+
+    async getPlaylistSize(playlistId: string, authToken: string) {
+
+    }
 }
 
 export interface Auth {
@@ -234,6 +270,19 @@ const convertTrack = (trackProto: any): TrackData => {
         album: trackProto.album.name,
         imageUrl: trackProto.album.images[0].url,
         duration: msToDuration(trackProto.duration_ms)
+    }
+}
+
+const convertTrackAnalysis = (trackAnalysisProto: any): TrackAnalysis => {
+    return {
+        danceability: trackAnalysisProto.danceability,
+        energy: trackAnalysisProto.energy,
+        instrumentalness: trackAnalysisProto.instrumentalness,
+        liveness: trackAnalysisProto.liveness,
+        loudness: trackAnalysisProto.loudness,
+        speechiness: trackAnalysisProto.speechiness,
+        tempo: trackAnalysisProto.tempo,
+        valence: trackAnalysisProto.valence
     }
 }
 
@@ -268,7 +317,8 @@ const convertPlaylist = (playlistProto: any): PlaylistData => {
     return {
         id: playlistProto.id,
         name: playlistProto.name,
-        coverUrl: playlistProto.images.length ? playlistProto.images[0].url : []
+        coverUrl: playlistProto.images.length ? playlistProto.images[0].url : [],
+        totalTracks: playlistProto.tracks.total
     }
 }
 

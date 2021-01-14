@@ -25,9 +25,10 @@ app.get('/user-playlists', async (req, res) => {
     res.send(playlists)
 })
 
-app.get('/playlist', async (req, res) => {
+app.post('/playlist', async (req, res) => {
     console.log('hit /playlist')
     const { playlistId } = req.body
+    console.log('playlistId: ', playlistId)
     const playlist = await spotifyController.getPlaylist(playlistId, req.session.authToken)
     res.send(playlist)
 })
@@ -44,6 +45,14 @@ app.post('/save-playlist', async (req, res) => {
     const { trackIds, playlistName } = req.body
     const playlist = await spotifyController.savePlaylist(trackIds, playlistName, req.session.user.id, req.session.authToken)
     console.log(playlist)
+    res.send(playlist)
+})
+
+app.post('/reorganize-playlist', async (req, res) => {
+    console.log('hit /reorganize-playlist')
+    const { playlistId } = req.body
+    console.log('playlistId: ', playlistId)
+    const playlist = await spotifyController.reorganizePlaylist(playlistId, req.session.authToken)
     res.send(playlist)
 })
 

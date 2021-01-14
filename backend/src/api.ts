@@ -28,7 +28,7 @@ export const startServer = () => {
     // Will need to change for deployment
     app.use(cors({
         origin: "http://localhost:3000", // allow to server to accept request from different origin
-        methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+        methods: "GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS",
         credentials: true // allow session cookie from browser to pass through
     }));
 

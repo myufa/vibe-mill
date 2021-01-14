@@ -1,5 +1,6 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const { WebpackManifestPlugin } = require('webpack-manifest-plugin');
 // const InterpolateHtmlPlugin = require('interpolate-html-plugin')
 module.exports = {
   entry: path.resolve(__dirname, 'src', 'index.tsx'),
@@ -72,8 +73,12 @@ module.exports = {
     new HtmlWebpackPlugin({
       template: path.resolve(__dirname, 'public', 'index.html'),
       filename: './index.html',
-      manifest: "./manifest.json"
+      manifest: "./manifest.json",
+      favicon: "./public/mill.svg",
     }),
+    new WebpackManifestPlugin({
+      publicPath:'public/'
+    })
     // new InterpolateHtmlPlugin({
     //   PUBLIC_URL: 'static' // can modify `static` to another name or get it from `process`
     // }),

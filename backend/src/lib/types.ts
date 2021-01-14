@@ -7,6 +7,19 @@ export interface UserData {
     product: "premium" | "free"
 }
 
+export interface AnalyzedTrackData extends TrackData, TrackAnalysis {}
+
+export interface TrackAnalysis {
+    danceability: number
+    energy: number
+    instrumentalness: number
+    liveness: number
+    loudness: number
+    speechiness: number
+    tempo: number
+    valence: number
+}
+
 export interface TrackData extends Reference {
     artists: string[]
     album: string
@@ -25,6 +38,7 @@ export interface AlbumData extends Reference {
 
 export interface PlaylistData extends Reference {
     coverUrl: string
+    totalTracks: number
 }
 
 export interface Reference {

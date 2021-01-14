@@ -1,6 +1,6 @@
 import axios, { AxiosResponse, CancelTokenStatic, Method } from "axios";
 import { Type } from "typescript";
-import { UserData, TrackData, PlaylistData } from "../../lib/types";
+import { UserData, TrackData, PlaylistData, AnalyzedTrackData } from "../../lib/types";
 
 export class AppClient {
     baseUrl: string
@@ -61,9 +61,16 @@ export class AppClient {
         return result.user
     }
 
+    async getPlaylist(playlistId: string): Promise<TrackData[]> {
+        const options = { data: { playlistId } }
+        const result = await this.callApp('spotify/playlist', 'post', {}, options)
+        console.log('playlist result', result)
+        return result.tracks
+    }
+
     async getPlaylists(): Promise<PlaylistData[]> {
         const result = await this.callApp('spotify/user-playlists', 'get')
-        console.log('playlist result', result)
+        console.log('playlists result', result)
         return result.playlists
     }
 
@@ -86,6 +93,13 @@ export class AppClient {
         const options = { data: { trackIds, playlistName } }
         const result: { playlist: PlaylistData } = await this.callApp('spotify/save-playlist', 'post', {}, options)
         return result.playlist
+    }
+
+    async reorganizePlaylist(playlistId: string): Promise<AnalyzedTrackData[]> {
+        const options = { data: { playlistId } }
+        const result = await this.callApp('spotify/reorganize-playlist', 'post', {}, options)
+        console.log('reorganize result', result)
+        return result.tracks
     }
 
 
