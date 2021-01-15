@@ -62,11 +62,8 @@
                 align-self: center;
             }
 
-            &:hover {
+            &:hover, &#selected, &:active {
                 cursor: pointer;
-                color: rgb(161, 161, 161);
-            }
-            &.selected {
                 color: rgb(104, 104, 104);
             }
         }
@@ -77,10 +74,30 @@
         grid-column: 2;
     }
 
-    .ReorganizeButton {
+    .controls {
         grid-row: 1;
         grid-column: 2;
-        display: block;
-        box-sizing: border-box;
+        display: grid;
+        grid-template-rows: 1fr 1fr 1fr;
+
+        .title {
+            grid-row: 1;
+        }
+
+        .ReorganizeButton {
+            grid-row: 2;
+            display: block;
+            box-sizing: border-box;
+            width: min-content;
+        }
+
+        .SaveButton {
+            grid-row: 3;
+            display: block;
+            box-sizing: border-box;
+            width: min-content;
+        }
+
     }
+    
 }

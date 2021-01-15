@@ -1,6 +1,6 @@
 import axios, { AxiosResponse, CancelTokenStatic, Method } from "axios";
 import { Type } from "typescript";
-import { UserData, TrackData, PlaylistData, AnalyzedTrackData } from "../../lib/types";
+import { UserData, TrackData, PlaylistData, AnalyzedTrackData, Feature } from "../../lib/types";
 
 export class AppClient {
     baseUrl: string
@@ -63,7 +63,7 @@ export class AppClient {
 
     async getPlaylist(playlistId: string): Promise<TrackData[]> {
         const options = { data: { playlistId } }
-        const result = await this.callApp('spotify/playlist', 'post', {}, options)
+        const result = await this.callApp('spotify/get-playlist', 'post', {}, options)
         console.log('playlist result', result)
         return result.tracks
     }
@@ -95,9 +95,16 @@ export class AppClient {
         return result.playlist
     }
 
-    async reorganizePlaylist(playlistId: string): Promise<AnalyzedTrackData[]> {
+    async getPlaylistWithFeatures(playlistId: string): Promise<AnalyzedTrackData[]> {
         const options = { data: { playlistId } }
-        const result = await this.callApp('spotify/reorganize-playlist', 'post', {}, options)
+        const result: { tracks: AnalyzedTrackData[] } = await this.callApp('spotify/get-playlist-with-features', 'post', {}, options)
+        console.log('tracks with features result', result)
+        return result.tracks
+    }
+
+    async saveReorganizedPlaylist(feature: Feature, playlistId: string): Promise<AnalyzedTrackData[]> {
+        const options = { data: { feature, playlistId } }
+        const result: { tracks: AnalyzedTrackData[] } = await this.callApp('spotify/reorganize-and-save-playlist', 'post', {}, options)
         console.log('reorganize result', result)
         return result.tracks
     }

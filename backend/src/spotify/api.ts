@@ -25,11 +25,19 @@ app.get('/user-playlists', async (req, res) => {
     res.send(playlists)
 })
 
-app.post('/playlist', async (req, res) => {
-    console.log('hit /playlist')
+app.post('/get-playlist', async (req, res) => {
+    console.log('hit /get-playlist')
     const { playlistId } = req.body
     console.log('playlistId: ', playlistId)
     const playlist = await spotifyController.getPlaylist(playlistId, req.session.authToken)
+    res.send(playlist)
+})
+
+app.post('/get-playlist-with-features', async (req, res) => {
+    console.log('hit /get-playlist-with-featues')
+    const { playlistId } = req.body
+    console.log('playlistId: ', playlistId)
+    const playlist = await spotifyController.getPlaylistWithFeatures(playlistId, req.session.authToken)
     res.send(playlist)
 })
 
@@ -43,16 +51,25 @@ app.get('/generate-playlist', async (req, res) => {
 app.post('/save-playlist', async (req, res) => {
     console.log('hit /save-playlist')
     const { trackIds, playlistName } = req.body
-    const playlist = await spotifyController.savePlaylist(trackIds, playlistName, req.session.user.id, req.session.authToken)
+    const playlist = await spotifyController.savePlaylist(
+        trackIds, playlistName, 
+        req.session.user.id, 
+        req.session.authToken
+    )
     console.log(playlist)
     res.send(playlist)
 })
 
-app.post('/reorganize-playlist', async (req, res) => {
+app.post('/reorganize-and-save-playlist', async (req, res) => {
     console.log('hit /reorganize-playlist')
-    const { playlistId } = req.body
+    const { feature, playlistId } = req.body
     console.log('playlistId: ', playlistId)
-    const playlist = await spotifyController.reorganizePlaylist(playlistId, req.session.authToken)
+    const playlist = await spotifyController.reorganizeAndSavePlaylist(
+        feature, 
+        playlistId, 
+        req.session.user.id, 
+        req.session.authToken
+    )
     res.send(playlist)
 })
 

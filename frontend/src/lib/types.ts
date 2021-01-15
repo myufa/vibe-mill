@@ -12,11 +12,6 @@ export interface AnalyzedTrackData extends TrackData, TrackAnalysis {}
 export interface TrackAnalysis {
     danceability: number
     energy: number
-    instrumentalness: number
-    liveness: number
-    loudness: number
-    speechiness: number
-    tempo: number
     valence: number
 }
 
@@ -45,3 +40,5 @@ export interface Reference {
     id: string
     name: string
 }
+
+export type Feature = 'danceability' | 'energy' | 'valence'

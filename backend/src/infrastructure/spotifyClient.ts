@@ -277,11 +277,6 @@ const convertTrackAnalysis = (trackAnalysisProto: any): TrackAnalysis => {
     return {
         danceability: trackAnalysisProto.danceability,
         energy: trackAnalysisProto.energy,
-        instrumentalness: trackAnalysisProto.instrumentalness,
-        liveness: trackAnalysisProto.liveness,
-        loudness: trackAnalysisProto.loudness,
-        speechiness: trackAnalysisProto.speechiness,
-        tempo: trackAnalysisProto.tempo,
         valence: trackAnalysisProto.valence
     }
 }

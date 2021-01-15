@@ -2,6 +2,7 @@ import { SpotifyClient, spotifyClient } from '../infrastructure/spotifyClient'
 import {
     AnalyzedTrackData,
     ArtistData,
+    Feature,
     PlaylistData,
     TrackData,
     UserData,
@@ -197,17 +198,46 @@ export class SpotifyController {
         playlistName: string, 
         userId: string, 
         authToken: string
-    ): Promise<{ tracks: TrackData[] }> {
-        const playlist = await spotifyClient.createPlaylist(playlistName, userId, authToken)
+    ): Promise<{ playlist: PlaylistData }> {
+        let playlist = await spotifyClient.createPlaylist(playlistName, userId, authToken)
         await spotifyClient.addTracksToPlaylist(playlist.id, trackIds, authToken)
         const tracks = await spotifyClient.getPlaylistTracks(playlist.id, authToken)
-        return { tracks }
+        playlist = await spotifyClient.getPlaylist(playlist.id, authToken)
+        return { playlist }
     }
 
-    async reorganizePlaylist(playlistId: string, authToken: string): Promise<{tracks: AnalyzedTrackData[]}> {
+    async getPlaylistWithFeatures(playlistId: string, authToken: string): Promise<{tracks: AnalyzedTrackData[]}> {
         const simpleTracks = await spotifyClient.getPlaylistTracks(playlistId, authToken)
         const analyzedTracks = await spotifyClient.getTracksFeatures(simpleTracks, authToken)
         return { tracks: analyzedTracks }
+    }
+
+    async reorganizeAndSavePlaylist(
+        feature: Feature, 
+        playlistId: string, 
+        userId: string,
+        authToken: string
+    ): Promise<{tracks: AnalyzedTrackData[]}> {
+        // Get original playlist and tracks
+        const originalPlaylist = await spotifyClient.getPlaylist(playlistId, authToken)
+        const simpleTracks = await spotifyClient.getPlaylistTracks(playlistId, authToken)
+
+        // Convert tracks to analyzed tracks
+        const analyzedTracks = await spotifyClient.getTracksFeatures(simpleTracks, authToken)
+
+        // Sort tracks
+        const sortedTracks = [...analyzedTracks].sort((a, b) => (a[feature] - b[feature]))
+        
+        // Make new revibed playlist version
+        const newPlaylistName = `${originalPlaylist.name} ~ ReVibed`
+        let newPlaylist = await spotifyClient.createPlaylist(newPlaylistName, userId, authToken)
+        
+        // Add sorted tracks to new playlist
+        const trackIds = sortedTracks.map(track => track.id)
+        await spotifyClient.addTracksToPlaylist(newPlaylist.id, trackIds, authToken)
+
+        // Return sorted tracks
+        return { tracks: sortedTracks }
     }
 }
 

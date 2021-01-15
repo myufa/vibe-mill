@@ -77,7 +77,18 @@ module.exports = {
       favicon: "./public/mill.svg",
     }),
     new WebpackManifestPlugin({
-      publicPath:'public/'
+      publicPath:'public/',
+      filter: (file) => !file.path.match(/\.map$/),
+      map: (file) => {
+        const extension = path.extname(file.name).slice(1)
+
+        return {
+          ...file,
+          name: ['css', 'js'].includes(extension) ?
+            `${extension}/${file.name}` :
+             file.name
+        }
+      }
     })
     // new InterpolateHtmlPlugin({
     //   PUBLIC_URL: 'static' // can modify `static` to another name or get it from `process`

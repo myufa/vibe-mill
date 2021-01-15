@@ -1,13 +1,14 @@
 import React, { FC, useEffect, useRef, useState } from "react";
 import { TrackList } from "../../components/TrackList";
-import { AnalyzedTrackData, PlaylistData, TrackData } from "../../lib/types";
+import { AnalyzedTrackData, PlaylistData, Feature } from "../../lib/types";
 import { appClient } from "../../services/appClient";
 import './Reorganizer.scss'
 
 export const Reorganizer: FC = () => {
     const [ playlists, setPlaylists ] = useState<PlaylistData[]>([])
     const [ selectedPlaylistIndex, setSelectedPlaylistIndex ] = useState(-1)
-    const [ tracks, setTracks ] = useState<TrackData[] | AnalyzedTrackData[]>([])
+    const [ tracks, setTracks ] = useState<AnalyzedTrackData[]>([])
+    const [ sortFeature, setSortFeature ] = useState<Feature | null>(null)
     const [ loading, setLoading ] = useState(true)
 
     const getPlaylists = () => {
@@ -24,11 +25,12 @@ export const Reorganizer: FC = () => {
 
     const selectPlaylist = (playlistIndex: number) => {
         console.log('playlistid and index:', playlists[playlistIndex].id, playlistIndex)
-        appClient.getPlaylist(playlists[playlistIndex].id)
+        appClient.getPlaylistWithFeatures(playlists[playlistIndex].id)
         .then(data => {
             console.log('data to be set: ', data)
             setTracks(data)
             setSelectedPlaylistIndex(playlistIndex)
+            setSortFeature(null)
             console.log('tracks set: ', tracks)
         })
         .catch(err => {
@@ -40,6 +42,7 @@ export const Reorganizer: FC = () => {
     const renderPlaylist = (playlist: PlaylistData, i: number) => {
         return (
             <div className='playlist' key={i} 
+                id={i===selectedPlaylistIndex ? 'selected' : undefined}
                 onClick={playlist.totalTracks < 400 ? 
                     () => selectPlaylist(i) 
                 : () => null }
@@ -54,17 +57,15 @@ export const Reorganizer: FC = () => {
         )
     }
 
-    const reorganizePlaylist = () => {
-        appClient.reorganizePlaylist(playlists[selectedPlaylistIndex].id)
-        .then(data => {
-            console.log('data to be set: ', data)
-            setTracks(data)
-            console.log('tracks set: ', tracks)
-        })
-        .catch(err => {
-            console.log(err)
-            setTracks([])
-        })
+    const reorganizePlaylist = (feature: Feature) => {
+        console.log('reorganizePlaylist')
+        if (feature) setTracks([...tracks].sort((a, b) => (a[feature] - b[feature])))
+        setSortFeature(feature)
+    }
+
+    const saveReorganizedPlaylist = () => {
+        if (!sortFeature) return
+        appClient.saveReorganizedPlaylist(sortFeature, playlists[selectedPlaylistIndex].id)
     }
 
     useEffect(getPlaylists, [])
@@ -77,9 +78,24 @@ export const Reorganizer: FC = () => {
                     {playlists.map(renderPlaylist)}
                 </ul>
                 {tracks.length ?
-                    <button className='ReorganizeButton' onClick={reorganizePlaylist}>
-                        Reorganize Playlist
-                    </button>
+                    <div className='controls'>
+                        <span className='title'>Sort By</span>
+                        <button className='ReorganizeButton' onClick={()=>reorganizePlaylist('danceability')}>
+                            Danceability
+                        </button>
+                        <button className='ReorganizeButton' onClick={()=>reorganizePlaylist('energy')}>
+                            Energy
+                        </button>
+                        <button className='ReorganizeButton' onClick={()=>reorganizePlaylist('valence')}>
+                            Valence
+                        </button>
+                        {sortFeature ?
+                            <button className='SaveButton' onClick={saveReorganizedPlaylist}>
+                                Save
+                            </button>
+                        : null
+                        }
+                    </div>                    
                 : null
                 }
                 {tracks.length ?
