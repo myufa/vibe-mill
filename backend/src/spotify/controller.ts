@@ -1,3 +1,4 @@
+import { SpotifyClientError } from '../lib/error'
 import { SpotifyClient, spotifyClient } from '../infrastructure/spotifyClient'
 import {
     AnalyzedTrackData,
@@ -127,8 +128,8 @@ export class SpotifyController {
 
         // Get a random cohort of user's top artists
         const artists = await this.client.getTopArtists(authToken)
-        let artistIds: string[] = artists.map((artist) => artist.id)
-        //artistIds = selectRandom(artistIds, N)
+        const artistIds: string[] = artists.map((artist) => artist.id)
+        // artistIds = selectRandom(artistIds, N)
 
         // Get artists related to the user's top artists
         const relatedArtists = (
@@ -194,9 +195,9 @@ export class SpotifyController {
     }
 
     async savePlaylist(
-        trackIds: string[], 
-        playlistName: string, 
-        userId: string, 
+        trackIds: string[],
+        playlistName: string,
+        userId: string,
         authToken: string
     ): Promise<{ playlist: PlaylistData }> {
         let playlist = await spotifyClient.createPlaylist(playlistName, userId, authToken)
@@ -213,8 +214,8 @@ export class SpotifyController {
     }
 
     async reorganizeAndSavePlaylist(
-        feature: Feature, 
-        playlistId: string, 
+        feature: Feature,
+        playlistId: string,
         userId: string,
         authToken: string
     ): Promise<{tracks: AnalyzedTrackData[]}> {
@@ -227,17 +228,30 @@ export class SpotifyController {
 
         // Sort tracks
         const sortedTracks = [...analyzedTracks].sort((a, b) => (a[feature] - b[feature]))
-        
+
         // Make new revibed playlist version
         const newPlaylistName = `${originalPlaylist.name} ~ ReVibed`
-        let newPlaylist = await spotifyClient.createPlaylist(newPlaylistName, userId, authToken)
-        
+        const newPlaylist = await spotifyClient.createPlaylist(newPlaylistName, userId, authToken)
+
         // Add sorted tracks to new playlist
         const trackIds = sortedTracks.map(track => track.id)
         await spotifyClient.addTracksToPlaylist(newPlaylist.id, trackIds, authToken)
 
         // Return sorted tracks
         return { tracks: sortedTracks }
+    }
+
+    async test(
+        refreshToken: string,
+        authToken: string
+    ): Promise<any> {
+        const data = 2
+        console.log('refreshToken check', refreshToken)
+        if(refreshToken) {
+           // throw new SpotifyClientError('this an error tho fr') 
+           throw new Error('this an error tho fr')
+        } 
+        return data
     }
 }
 

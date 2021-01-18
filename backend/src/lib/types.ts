@@ -42,3 +42,8 @@ export interface Reference {
 }
 
 export type Feature = 'danceability' | 'energy' | 'valence'
+
+export interface ApiError {
+    errorCode: number
+    isApiError: true
+}

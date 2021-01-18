@@ -1,7 +1,8 @@
-import axios, { Method } from "axios"
+import axios, { AxiosError, Method } from "axios"
 import _ from "lodash"
 import qs from "qs"
 import KEYS from "../config/keys"
+import { SpotifyClientError } from '../lib/error'
 import { AlbumData, AnalyzedTrackData, ArtistData, PlaylistData, Reference, TrackAnalysis, TrackData, UserData } from '../lib/types'
 
 const DEFAULT_PROFILE_PIC_URL = ''
@@ -27,13 +28,14 @@ export class SpotifyClient {
                 params,
                 method,
                 headers: {
-                        'Authorization': 'Bearer ' + authToken
+                    'Authorization': 'Bearer ' + authToken
                 },
                 ...options
             })
         } catch(err) {
-            console.log(err)
-            throw err
+            console.log('call spotify error', err.response.data)
+            //throw new SpotifyClientError('Invalid Token')
+            throw new Error('Invalid Token')
         }
         return result.data
     }
@@ -54,13 +56,12 @@ export class SpotifyClient {
                     grant_type: 'authorization_code'
                 },
                 headers: {
-                    // 'Authorization': 'Basic ' + (Buffer.from(KEYS.SPOTIFY_CLIENT_ID + ':' + KEYS.SPOTIFY_SECRET).toString('base64')),
                     'Content-Type': 'application/x-www-form-urlencoded',
                     Accept: 'application/json',
                 }
             })
         } catch(err) {
-            console.log(err)
+            console.log('auth error', err.response.data)
             throw err
         }
         const authToken = authResult.data.access_token
@@ -69,6 +70,34 @@ export class SpotifyClient {
             authToken,
             refreshToken
         }
+    }
+
+    async refreshAuth(
+        refreshToken: string,
+        authToken: string
+    ): Promise<{ newAuthToken: string }> {
+        console.log('REF TOKEN CHECK', refreshToken)
+        let authResult: any
+        try {
+            authResult = await axios({
+                url: "https://accounts.spotify.com/api/token",
+                method: "post",
+                params: {
+                    refresh_token: refreshToken,
+                    grant_type: 'refresh_token'
+                },
+                headers: {
+                    'Authorization': 'Basic ' + Buffer.from(`${KEYS.SPOTIFY_CLIENT_ID}:${KEYS.SPOTIFY_SECRET}`).toString('base64'),
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    Accept: 'application/json',
+                }
+            })
+        } catch(err) {
+            console.log('refresh error', err.response.data)
+            throw err
+        }
+        const newAuthToken = authResult.data.access_token
+        return { newAuthToken }
     }
 
     async getUser(authToken: string): Promise<UserData> {
@@ -94,7 +123,7 @@ export class SpotifyClient {
                 `playlists/${playlistId}/tracks?limit=${limit}&offset=${offset}`,
                 'get',
                 authToken,
-                //params
+                // params
             )
             const trackProtos: any[] = data.items.map((item: any) => item.track)
             const result = trackProtos.map(convertTrack)
@@ -125,7 +154,7 @@ export class SpotifyClient {
         const analyzedTracks: AnalyzedTrackData[] = _.zipWith(tracks, trackAnalyses, (track, analysis) => {
             return {...track, ...analysis}
         })
-        
+
         return analyzedTracks
     }
 
@@ -142,15 +171,15 @@ export class SpotifyClient {
         while (numFetches < 10) {
             const offset = numFetches * 50
             const data = await this.callSpotify(
-                `me/playlists?limit=${limit}&offset=${offset}`, 
+                `me/playlists?limit=${limit}&offset=${offset}`,
                 'get', authToken)
             const playlistProtos: any[] = data.items
             const result: PlaylistData[] = playlistProtos.map(convertPlaylist)
             playlists.push(...result)
             if(!data.next) break
             numFetches = numFetches + 1
-        }        
-        
+        }
+
         return playlists
     }
 
@@ -219,7 +248,7 @@ export class SpotifyClient {
             tracks.push(...result)
             offset = offset + 50
         }
-        
+
         return tracks
     }
 
@@ -231,8 +260,8 @@ export class SpotifyClient {
     }
 
     async addTracksToPlaylist(
-        playlistId: string, 
-        trackIds: string[], 
+        playlistId: string,
+        trackIds: string[],
         authToken: string
     ): Promise<undefined> {
         const options = {
@@ -246,7 +275,7 @@ export class SpotifyClient {
     }
 
     async getPlaylistSize(playlistId: string, authToken: string) {
-
+        return 2
     }
 }
 

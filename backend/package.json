@@ -2,14 +2,15 @@
   "name": "vibe-mill",
   "version": "1.0.0",
   "description": "",
-  "main": "dist/index.js",
+  "main": "dist/src/index.js",
   "scripts": {
     "prebuild": "tslint -c tslint.yaml -p tsconfig.json --fix",
     "build": "tsc",
-    "prestart": "npm run build",
+    "prestart": "npm run clean && npm run build",
     "start": "node .",
     "test": "npm run build && ts-mocha ./dist/tests/**/*.test.js ./dist/tests/*.test.js  --exit --timeout 200000",
-    "dev": "nodemon --config nodemon.json src/index.ts"
+    "dev": "nodemon --config nodemon.json src/index.ts",
+    "clean": "rm -rf dist"
   },
   "keywords": [],
   "author": "",
@@ -28,6 +29,7 @@
     "cookie-session": "^1.4.0",
     "cors": "^2.8.5",
     "express": "^4.17.1",
+    "express-async-errors": "^3.1.1",
     "express-session": "^1.17.1",
     "lodash": "^4.17.20",
     "open": "^7.3.0",

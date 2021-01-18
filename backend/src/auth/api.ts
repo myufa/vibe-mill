@@ -31,15 +31,6 @@ app.get("/login/success", (req, res) => {
 
 });
 
-// when login failed, send failed msg
-app.get("/login/failed", (req, res) => {
-  console.log('hit /auth/login/failed')
-  res.status(401).json({
-    success: false,
-    message: "user failed to authenticate."
-  });
-});
-
 // When logout, redirect to client
 app.get("/logout", (req, res) => {
   console.log('hit /auth/logout')
@@ -89,5 +80,27 @@ app.get("/spotify/redirect", async (req, res) => {
 
   res.redirect(CLIENT_HOME_PAGE_URL)
 });
+
+app.get('/refresh-token', async (req, res, next) => {
+  console.log('hit refresh-token')
+  let result
+   
+  try{
+    result = await spotifyClient.refreshAuth(req.session.refreshToken, req.session.authToken)
+    const { newAuthToken } = result
+    req.session.authToken = newAuthToken
+    res.json({
+      success: true,
+      message: 'refreshed token'
+    })
+  } catch(err) {
+    res
+    .status(501)
+    .json({
+      wasAuthed: !!req.session.authToken
+    })
+  }
+  
+})
 
 export { app as authApp }

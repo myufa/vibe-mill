@@ -1,0 +1,20 @@
+$font-prefix: "~@ibm/plex";
+@import 'node_modules/@ibm/plex/scss/ibm-plex.scss';
+
+.globalButton {
+    display: inline-block;
+    width: max-content;
+    margin: 0 2px;
+    border: 2px solid #000000;
+    box-sizing: border-box;
+    box-shadow: 0px 2px 4px rgba(141, 140, 140, 0.25);
+    //padding: 6px 6px 6px 6px;
+    font-family: IBM Plex Mono;
+    font-style: normal;
+    font-weight: 600;
+    //font-size: 12px;
+    &:focus, &:active {
+        border-radius: 0;
+        box-sizing: border-box;
+    }
+}

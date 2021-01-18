@@ -1,10 +1,11 @@
 import React, { Component, FC, useEffect, useState } from "react";
 import { BrowserRouter as Router, Route } from "react-router-dom";
 import { UserData } from "./lib/types";
-import { Main } from './scenes'
-import { Header } from "./scenes/components/Header";
-import { Generator } from "./scenes/Generator";
-import { Reorganizer } from "./scenes/Reorganizer";
+import { Main } from './pages'
+import { Header } from "./pages/components/Header";
+import { Footer } from './pages/components/Footer'
+import { Generator } from "./pages/Generator";
+import { Reorganizer } from "./pages/Reorganizer";
 import { appClient } from "./services/appClient";
 import { ProtectedRoute } from './lib/ProtectedRoute'
 import './App.scss'
@@ -47,14 +48,20 @@ const App: FC = () => {
                 exact={true} path="/" 
                 render={(props) => (<Main authenticated={authenticated}/>)} 
               />
-              <ProtectedRoute
-                exact={true} path="/Generator/" 
-                Comp={Generator} 
-              />
-              <ProtectedRoute
-                exact={true} path="/Reorganizer/" 
-                Comp={Reorganizer} 
-              />
+              {
+                authenticated ?
+                <>
+                  <ProtectedRoute
+                    exact={true} path="/Generator/" 
+                    Comp={Generator} 
+                  />
+                  <ProtectedRoute
+                    exact={true} path="/Reorganizer/" 
+                    Comp={Reorganizer} 
+                  />
+                </>
+                : null
+              }
             </>
           :
             null
@@ -63,6 +70,9 @@ const App: FC = () => {
           
         </div>
       </Router>
+      <div className='FooterSection'>
+          <Footer />
+      </div>
     </div>
   )
   
